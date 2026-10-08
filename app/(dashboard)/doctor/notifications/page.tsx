@@ -1,0 +1,4 @@
+export const dynamic = "force-dynamic";
+export default function DoctorNotifications() {
+  return <div className="p-6"><h1>Notifications</h1></div>;
+}
