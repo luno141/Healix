@@ -1,12 +1,12 @@
-export const dynamic = "force-dynamic";
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { createMedicalRecord } from "@/lib/actions/medical-records";
+import { createMedicalRecord, getMedicalFileUrl } from "@/lib/actions/medical-records";
 import { Badge } from "@/components/ui/badge";
+import { FileText, Download, Paperclip } from "lucide-react";
 
 export default async function DoctorPatientDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: patientId } = await params;
@@ -20,7 +20,7 @@ export default async function DoctorPatientDetailPage({ params }: { params: Prom
 
   const { data: records } = await supabase
     .from("medical_records")
-    .select("*")
+    .select("*, medical_record_files(*)")
     .eq("patient_id", patientId)
     .order("created_at", { ascending: false });
 
@@ -38,7 +38,7 @@ export default async function DoctorPatientDetailPage({ params }: { params: Prom
       diagnosis,
       treatment,
       description
-    });
+    }, formData);
   }
 
   return (
@@ -51,14 +51,14 @@ export default async function DoctorPatientDetailPage({ params }: { params: Prom
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Add Medical Record / Note</CardTitle>
-            <CardDescription>Clinical documentation will immediately update patient records</CardDescription>
+            <CardTitle>Add Medical Record & Attachments</CardTitle>
+            <CardDescription>Clinical documentation will store directly into Supabase Storage & Database</CardDescription>
           </CardHeader>
           <CardContent>
             <form action={handleAddRecord} className="space-y-4">
               <div className="space-y-2">
                 <Label>Record Title</Label>
-                <Input name="title" placeholder="e.g. Follow-up consultation" required />
+                <Input name="title" placeholder="e.g. ECG Results & Follow-up consultation" required />
               </div>
               <div className="space-y-2">
                 <Label>Record Type</Label>
@@ -81,14 +81,20 @@ export default async function DoctorPatientDetailPage({ params }: { params: Prom
                 <Label>Clinical Notes</Label>
                 <Textarea name="description" placeholder="Observations, vitals, next steps..." required />
               </div>
-              <Button type="submit" className="w-full">Save Chart Entry</Button>
+              <div className="space-y-2">
+                <Label className="flex items-center gap-1.5">
+                  <Paperclip className="h-4 w-4" /> Medical Document (Lab report, X-ray, PDF)
+                </Label>
+                <Input name="file" type="file" className="cursor-pointer" />
+              </div>
+              <Button type="submit" className="w-full">Save Chart Entry & Upload</Button>
             </form>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Medical History</CardTitle>
+            <CardTitle>Medical History & Records</CardTitle>
           </CardHeader>
           <CardContent>
             {!records || records.length === 0 ? (
@@ -96,14 +102,40 @@ export default async function DoctorPatientDetailPage({ params }: { params: Prom
             ) : (
               <div className="space-y-4">
                 {records.map((r: any) => (
-                  <div key={r.id} className="border rounded-md p-3 space-y-2 text-sm">
+                  <div key={r.id} className="border rounded-md p-4 space-y-2.5 text-sm bg-card">
                     <div className="flex justify-between items-center">
-                      <span className="font-semibold">{r.title}</span>
+                      <span className="font-semibold text-base">{r.title}</span>
                       <Badge variant="outline">{r.record_type}</Badge>
                     </div>
-                    <p><span className="text-muted-foreground">Dx:</span> {r.diagnosis}</p>
-                    <p><span className="text-muted-foreground">Tx:</span> {r.treatment}</p>
-                    <p className="text-xs text-muted-foreground">{new Date(r.created_at).toLocaleString()}</p>
+                    <p><span className="font-medium text-muted-foreground">Dx:</span> {r.diagnosis}</p>
+                    <p><span className="font-medium text-muted-foreground">Tx:</span> {r.treatment}</p>
+                    <p className="text-muted-foreground text-xs">{r.description}</p>
+
+                    {r.medical_record_files && r.medical_record_files.length > 0 && (
+                      <div className="mt-2 pt-2 border-t space-y-1">
+                        <span className="text-xs font-semibold text-muted-foreground">Attached Documents:</span>
+                        {r.medical_record_files.map((f: any) => (
+                          <div key={f.id} className="flex items-center justify-between text-xs bg-muted/40 p-2 rounded">
+                            <span className="flex items-center gap-1.5 truncate">
+                              <FileText className="h-3.5 w-3.5 text-primary" /> {f.file_name}
+                            </span>
+                            <form action={async () => {
+                              "use server";
+                              const url = await getMedicalFileUrl(f.file_path);
+                              if (url) {
+                                // Handled via client anchor or redirect
+                              }
+                            }}>
+                              <a href={`/api/files?path=${encodeURIComponent(f.file_path)}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-primary hover:underline">
+                                <Download className="h-3.5 w-3.5" /> View
+                              </a>
+                            </form>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <p className="text-[11px] text-muted-foreground pt-1">{new Date(r.created_at).toLocaleString()}</p>
                   </div>
                 ))}
               </div>

@@ -1,8 +1,7 @@
-export const dynamic = "force-dynamic";
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Calendar, User } from "lucide-react";
+import { FileText, Calendar, User, Download } from "lucide-react";
 
 export default async function PatientMedicalHistoryPage() {
   const supabase = await createClient();
@@ -16,7 +15,7 @@ export default async function PatientMedicalHistoryPage() {
 
   const { data: records } = await supabase
     .from("medical_records")
-    .select("*, profiles:created_by(full_name)")
+    .select("*, profiles:created_by(full_name), medical_record_files(*)")
     .eq("patient_id", patient?.id || "")
     .order("created_at", { ascending: false });
 
@@ -24,7 +23,7 @@ export default async function PatientMedicalHistoryPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Medical History</h1>
-        <p className="text-muted-foreground">Access your verified clinical notes, diagnoses, and treatments.</p>
+        <p className="text-muted-foreground">Access your verified clinical notes, diagnoses, and uploaded laboratory documents.</p>
       </div>
 
       <div className="space-y-4">
@@ -70,6 +69,24 @@ export default async function PatientMedicalHistoryPage() {
                   <div>
                     <span className="font-semibold text-foreground">Notes: </span>
                     <span className="text-muted-foreground">{r.description}</span>
+                  </div>
+                )}
+
+                {r.medical_record_files && r.medical_record_files.length > 0 && (
+                  <div className="mt-3 pt-3 border-t space-y-2">
+                    <span className="text-xs font-semibold text-muted-foreground">Attached Records & Reports:</span>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      {r.medical_record_files.map((f: any) => (
+                        <div key={f.id} className="flex items-center justify-between text-xs bg-muted/40 p-2.5 rounded border">
+                          <span className="flex items-center gap-1.5 truncate mr-2">
+                            <FileText className="h-4 w-4 text-primary" /> {f.file_name}
+                          </span>
+                          <a href={`/api/files?path=${encodeURIComponent(f.file_path)}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-primary hover:underline font-medium">
+                            <Download className="h-3.5 w-3.5" /> View
+                          </a>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </CardContent>
