@@ -25,7 +25,7 @@ export async function middleware(request: NextRequest) {
   if (user) {
     // Fetch profile to get role
     const { data: profile } = await supabase
-      .from('Profile')
+      .from('profiles')
       .select('role')
       .eq('id', user.id)
       .single()
@@ -34,13 +34,13 @@ export async function middleware(request: NextRequest) {
 
     // Redirect based on role mismatch
     if (path.startsWith('/patient') && role !== 'patient') {
-      return NextResponse.redirect(new URL(`/${role}/dashboard`, request.url))
+      if (role) { return NextResponse.redirect(new URL(`/${role}/dashboard`, request.url)); } else { return supabaseResponse; }
     }
     if (path.startsWith('/doctor') && role !== 'doctor') {
-      return NextResponse.redirect(new URL(`/${role}/dashboard`, request.url))
+      if (role) { return NextResponse.redirect(new URL(`/${role}/dashboard`, request.url)); } else { return supabaseResponse; }
     }
     if (path.startsWith('/admin') && role !== 'admin') {
-      return NextResponse.redirect(new URL(`/${role}/dashboard`, request.url))
+      if (role) { return NextResponse.redirect(new URL(`/${role}/dashboard`, request.url)); } else { return supabaseResponse; }
     }
     
     // Auth users visiting login/register redirect to dashboard
