@@ -10,7 +10,7 @@ import { AuthForm } from '@/components/auth/auth-form';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import Link from 'next/link';
 import { toast } from 'sonner';
-// import { createClient } from '@/lib/supabase/client';
+import { createClient } from '@/lib/supabase/client';
 
 const registerSchema = z.object({
   fullName: z.string().min(2, 'Name is required'),
@@ -33,19 +33,26 @@ export default function RegisterPage() {
   async function onSubmit(values: z.infer<typeof registerSchema>) {
     setIsLoading(true);
     try {
-      // const supabase = createClient();
-      // const { error } = await supabase.auth.signUp({
-      //   email: values.email,
-      //   password: values.password,
-      //   options: {
-      //     data: {
-      //       full_name: values.fullName,
-      //       role: 'patient',
-      //     }
-      //   }
-      // });
-      // if (error) throw error;
-      toast.success('Registration successful! Please check your email to verify your account.');
+      const supabase = createClient();
+      const { data, error } = await supabase.auth.signUp({
+        email: values.email,
+        password: values.password,
+        options: {
+          data: {
+            full_name: values.fullName,
+            role: 'patient',
+          }
+        }
+      });
+      if (error) throw error;
+
+      if (data.session) {
+        toast.success('Registration successful! Redirecting to dashboard...');
+        window.location.href = '/patient/dashboard';
+      } else {
+        toast.success('Registration successful! You can now log in.');
+        window.location.href = '/login';
+      }
     } catch (error: any) {
       toast.error(error.message || 'Failed to register');
     } finally {

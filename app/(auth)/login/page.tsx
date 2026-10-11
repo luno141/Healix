@@ -11,7 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
-// import { createClient } from '@/lib/supabase/client';
+import { createClient } from '@/lib/supabase/client';
 
 const loginSchema = z.object({
   email: z.string().email({ message: 'Invalid email address' }),
@@ -30,11 +30,28 @@ export default function LoginPage() {
   async function onSubmit(values: z.infer<typeof loginSchema>) {
     setIsLoading(true);
     try {
-      // const supabase = createClient();
-      // const { error } = await supabase.auth.signInWithPassword(values);
-      // if (error) throw error;
+      const supabase = createClient();
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: values.email,
+        password: values.password,
+      });
+      if (error) throw error;
+
+      // Determine redirect by role from profile
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', data.user.id)
+        .single();
+
       toast.success('Logged in successfully!');
-      router.push('/dashboard');
+      if (profile?.role === 'admin') {
+        window.location.href = '/admin/dashboard';
+      } else if (profile?.role === 'doctor') {
+        window.location.href = '/doctor/dashboard';
+      } else {
+        window.location.href = '/patient/dashboard';
+      }
     } catch (error: any) {
       toast.error(error.message || 'Failed to login');
     } finally {
