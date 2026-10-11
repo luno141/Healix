@@ -31,11 +31,9 @@ export function Header({ role = 'patient' }: { role?: 'admin' | 'doctor' | 'pati
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 sm:px-6">
       <Sheet>
-        <SheetTrigger className="md:hidden">
-          <Button variant="outline" size="icon">
-            <Menu className="h-5 w-5" />
-            <span className="sr-only">Toggle Menu</span>
-          </Button>
+        <SheetTrigger className="md:hidden inline-flex items-center justify-center rounded-md border border-input bg-background p-2 text-sm font-medium shadow-sm hover:bg-accent hover:text-accent-foreground">
+          <Menu className="h-5 w-5" />
+          <span className="sr-only">Toggle Menu</span>
         </SheetTrigger>
         <SheetContent side="left" className="p-0 w-64">
           <Sidebar role={role} />
