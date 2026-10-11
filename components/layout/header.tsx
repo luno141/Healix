@@ -1,6 +1,6 @@
 'use client';
 
-import { Menu, Search, Bell, User } from 'lucide-react';
+import { Menu, Search, Bell, User, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -13,16 +13,26 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
+import { createClient } from '@/lib/supabase/client';
 
 export function Header({ role = 'patient' }: { role?: 'admin' | 'doctor' | 'patient' }) {
+  const handleLogout = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    window.location.href = '/login';
+  };
+
+  const profileHref = `/${role}/profile`;
+  const notifHref = `/${role}/notifications`;
+
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 sm:px-6">
       <Sheet>
-        <SheetTrigger >
-          <Button variant="outline" size="icon" className="md:hidden">
+        <SheetTrigger className="md:hidden">
+          <Button variant="outline" size="icon">
             <Menu className="h-5 w-5" />
             <span className="sr-only">Toggle Menu</span>
           </Button>
@@ -37,37 +47,51 @@ export function Header({ role = 'patient' }: { role?: 'admin' | 'doctor' | 'pati
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
-            placeholder="Search..."
+            placeholder="Search records, appointments..."
             className="w-full bg-background pl-8 md:w-[300px] lg:w-[400px]"
           />
         </div>
       </div>
 
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="h-5 w-5" />
-          <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center rounded-full p-0">
-            3
-          </Badge>
-          <span className="sr-only">Notifications</span>
-        </Button>
+        <Link href={role === 'admin' ? '/admin/audit-logs' : notifHref}>
+          <Button variant="ghost" size="icon" className="relative">
+            <Bell className="h-5 w-5" />
+            <Badge className="absolute -top-1 -right-1 h-4 w-4 flex items-center justify-center rounded-full p-0 text-[10px]">
+              •
+            </Badge>
+            <span className="sr-only">Notifications</span>
+          </Button>
+        </Link>
 
         <DropdownMenu>
-          <DropdownMenuTrigger >
-            <Button variant="ghost" size="icon" className="rounded-full">
+          <DropdownMenuTrigger>
+            <div className="flex items-center gap-2 cursor-pointer p-1 rounded-full hover:bg-muted">
               <Avatar className="h-8 w-8">
-                <AvatarImage src="" alt="User" />
-                <AvatarFallback>U</AvatarFallback>
+                <AvatarFallback className="bg-primary/10 text-primary font-bold uppercase">
+                  {role.charAt(0)}
+                </AvatarFallback>
               </Avatar>
-            </Button>
+            </div>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+          <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuLabel className="capitalize">{role} Account</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem ><Link href="/profile">Profile</Link></DropdownMenuItem>
-            <DropdownMenuItem ><Link href="/settings">Settings</Link></DropdownMenuItem>
+            {role !== 'admin' && (
+              <DropdownMenuItem>
+                <Link href={profileHref} className="w-full">Profile Settings</Link>
+              </DropdownMenuItem>
+            )}
+            {role === 'admin' && (
+              <DropdownMenuItem>
+                <Link href="/admin/settings" className="w-full">System Settings</Link>
+              </DropdownMenuItem>
+            )}
             <DropdownMenuSeparator />
-            <DropdownMenuItem ><Link href="/login">Logout</Link></DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogout} className="text-destructive cursor-pointer">
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign Out
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

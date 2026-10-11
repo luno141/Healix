@@ -16,12 +16,8 @@ export default function LandingPage() {
             Streamline your medical practice, book appointments easily, and manage patient records securely with Healix.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button size="lg" >
-              <Link href="/register">Get Started</Link>
-            </Button>
-            <Button size="lg" variant="outline" >
-              <Link href="/login">Sign In</Link>
-            </Button>
+            <Link href="/register"><Button size="lg">Get Started</Button></Link>
+            <Link href="/login"><Button size="lg" variant="outline">Sign In</Button></Link>
           </div>
         </div>
       </section>
