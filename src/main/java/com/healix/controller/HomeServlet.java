@@ -11,7 +11,7 @@ import java.io.IOException;
  * Core Java Servlet: HomeServlet - Landing page controller
  * Demonstrates HttpServlet lifecycle (doGet)
  */
-@WebServlet(name = "HomeServlet", urlPatterns = {"", "/"})
+@WebServlet(name = "HomeServlet", urlPatterns = {"/home"})
 public class HomeServlet extends HttpServlet {
 
     @Override
