@@ -1,69 +1,78 @@
 # Healix - Healthcare Management System
 
-Healix is a comprehensive, production-grade Healthcare Management System engineered to streamline clinic workflows, patient consultation scheduling, electronic medical records (EMR), and administrative governance.
+Healix is an enterprise-grade Online Healthcare Management System built using **Core Java (Java 21)**, **Jakarta Servlets (MVC architecture)**, **JSP**, **JDBC with HikariCP Connection Pooling**, and **PostgreSQL (Supabase)**.
 
-The platform provides dual runtime architectures:
-1. **Java Enterprise Edition (Servlet / JSP / MVC)** - Built with Core Java principles, Jakarta Servlets, JDBC with connection pooling, and embedded Apache Tomcat.
-2. **Next.js & TypeScript Modern Web Application** - Built with Next.js App Router, React Server Components, Tailwind CSS, and Shadcn UI.
-3. **Database & Infrastructure** - PostgreSQL powered by Supabase with Row Level Security (RLS), custom triggers, and role-based access control.
+The application is deployed with an embedded **Apache Tomcat 10** server for standalone, zero-configuration local execution.
 
 ---
 
 ## 🌟 Key Features
 
 ### Role-Based Access Control (RBAC)
-- **Patient Portal**: Browse active practitioners by medical discipline, schedule appointments with conflict prevention algorithms, view personal medical histories, and leave verified ratings.
-- **Doctor Portal**: Manage weekly consultation availability, inspect daily queues, approve/complete/cancel visits, update patient diagnostic notes, and record medical treatments.
-- **Admin Governance**: Centralized dashboard for user accounts, doctor onboarding, system audit logs, and global appointment operations.
-
-### Core Modules
-- **Slot Conflict & Concurrency Prevention**: Strict double-booking prevention ensuring no overlapping active slots exist for any doctor.
-- **Electronic Medical Records (EMR)**: Secure creation and indexing of diagnoses, prescriptions, treatment plans, and document storage.
-- **Real-Time Dashboards & Metrics**: Dynamic reporting of appointment throughput, patient rosters, and doctor ratings.
+- **Patient Portal**:
+  - View dashboard statistics and upcoming appointments.
+  - Browse qualified doctors filtered by medical specialization.
+  - Book consultation slots with dynamic slot conflict detection and double-booking concurrency control.
+  - View electronic medical records and historical diagnosis/treatment data.
+  - Cancel pending/confirmed appointments.
+- **Doctor Portal**:
+  - View daily schedule and appointment queues.
+  - Manage weekly availability windows (set days, start/end times, slot durations).
+  - Confirm, complete, or cancel patient appointments.
+  - Access patient charts and register consultation notes, diagnoses, and medical treatments.
+  - Review patient ratings and feedback.
+- **Admin Governance**:
+  - Centralized dashboard displaying total user counts, active doctors, appointments, and pending queues.
+  - Manage user accounts and modify user roles.
+  - Inspect practitioner licensing, qualifications, and operational statuses.
+  - Global oversight of all clinic appointments.
 
 ---
 
-## 🏗️ System Architecture
+## 🏗️ Architecture & Core Java Concepts
 
-### 1. Java MVC Web Application (`healthcare-management-system-java/`)
-- **Controller Layer**: Jakarta Servlets (`HomeServlet`, `AuthServlet`, `PatientServlet`, `DoctorServlet`, `AdminServlet`) routing request actions using MVC principles.
-- **Security & RBAC**: `AuthenticationFilter` implementing interceptor filtering across role endpoints (`/patient/*`, `/doctor/*`, `/admin/*`).
-- **Data Access Object (DAO) Pattern**: Interfaces (`UserDAO`, `DoctorDAO`, `AppointmentDAO`, `MedicalRecordDAO`, `FeedbackDAO`) with concrete JDBC implementations using `PreparedStatement`, transactional rollbacks, and HikariCP connection pooling.
-- **Object-Oriented Design**: Encapsulation, inheritance hierarchies (`Doctor extends User`, `Patient extends User`), custom exception architecture (`HealthcareException`, `SlotConflictException`), and collections stream pipelines.
-- **Presentation**: Standard Jakarta Server Pages (JSP) using JSTL 3.0 and responsive CSS.
-- **Embedded Server**: Built-in Apache Tomcat 10 container for zero-configuration, standalone execution.
+This project is built from first principles demonstrating core object-oriented software engineering:
 
-### 2. Next.js Web Application (`/`)
-- **Full-Stack Framework**: Next.js (App Router) + TypeScript + React.
-- **Styling & UI**: Tailwind CSS, Radix UI primitives, Lucide Icons.
-- **State & Server Actions**: Server-side data fetching with Supabase SSR clients and cookie-based authentication.
-- **Automated Testing**: Vitest test suites with GitHub Actions CI workflows.
+- **Model-View-Controller (MVC)**:
+  - **Models (`com.healix.model`)**: Encapsulated domain entities (`User`, `Doctor`, `Patient`, `Appointment`, `DoctorAvailability`, `MedicalRecord`, `Feedback`).
+  - **Controllers (`com.healix.controller`)**: Dedicated `HttpServlet` classes (`HomeServlet`, `AuthServlet`, `PatientServlet`, `DoctorServlet`, `AdminServlet`) managing GET/POST requests and session states.
+  - **Views (`WEB-INF/views`)**: Server-rendered JSP templates utilizing standard JSTL 3.0 tags with clean, responsive styling.
+- **Object-Oriented Programming (OOP)**:
+  - **Encapsulation**: Private state with accessor/mutator methods across all data models.
+  - **Inheritance**: `Doctor extends User` and `Patient extends User` sharing identity and authentication attributes.
+  - **Polymorphism & Abstraction**: Data Access Object (DAO) pattern separating interfaces (`UserDAO`, `DoctorDAO`, `AppointmentDAO`, `MedicalRecordDAO`, `FeedbackDAO`) from concrete JDBC implementations.
+- **Concurrency & Concurrency Control**:
+  - Double-booking prevention enforced via transactional validation in `AppointmentDAOImpl`.
+- **Exception Hierarchy**:
+  - Custom checked and domain exceptions (`HealthcareException`, `SlotConflictException`, `AuthenticationException`).
+- **Connection Pooling & Singleton**:
+  - Thread-safe HikariCP connection pool managed via a thread-safe `DBConnection` Singleton.
+- **Security & Interceptors**:
+  - `AuthenticationFilter` implementing `jakarta.servlet.Filter` to intercept unauthenticated or unauthorized role access.
 
 ---
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-- **For Java Web App**: JDK 21+ and Gradle (or Maven).
-- **For Next.js Web App**: Node.js 18+ and npm / pnpm.
-- **Database**: PostgreSQL (Supabase instance).
+- **JDK 21 or higher**
+- **Gradle 8.5+** (or Maven 3.9+)
 
----
+### Installation & Launch
 
-### Running the Java MVC Web App
-
-1. Navigate to the Java project folder:
+1. Clone the repository:
    ```bash
-   cd healthcare-management-system-java
+   git clone git@github.com:luno141/Healix.git
+   cd Healix
    ```
 
-2. Launch using the startup script:
+2. Start the application using the runner script:
    ```bash
    chmod +x run.sh
    ./run.sh
    ```
 
-   Alternatively, use Gradle directly:
+   *Alternatively, build and run directly via Gradle:*
    ```bash
    gradle build -x test
    gradle run
@@ -76,64 +85,82 @@ The platform provides dual runtime architectures:
 
 ---
 
-### Running the Next.js Web App
+## 📁 Project Directory Structure
 
-1. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-2. Configure environment variables in `.env.local`:
-   ```env
-   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your_publishable_key
-   SUPABASE_SECRET_KEY=your_secret_key
-   ```
-
-3. Run development server:
-   ```bash
-   npm run dev
-   ```
-
-4. Open your browser at:
-   ```
-   http://localhost:3000/
-   ```
-
-5. Run test suite:
-   ```bash
-   npm test
-   ```
+```
+.
+├── build.gradle                    # Gradle build configuration
+├── pom.xml                         # Maven build configuration
+├── run.sh                          # One-click startup script
+├── src/
+│   └── main/
+│       ├── java/com/healix/
+│       │   ├── controller/         # Jakarta Servlets (Controllers)
+│       │   │   ├── HomeServlet.java
+│       │   │   ├── AuthServlet.java
+│       │   │   ├── PatientServlet.java
+│       │   │   ├── DoctorServlet.java
+│       │   │   └── AdminServlet.java
+│       │   ├── dao/                # DAO interfaces & JDBC implementations
+│       │   │   ├── AppointmentDAO.java
+│       │   │   ├── DoctorDAO.java
+│       │   │   ├── FeedbackDAO.java
+│       │   │   ├── MedicalRecordDAO.java
+│       │   │   ├── UserDAO.java
+│       │   │   └── impl/
+│       │   ├── exception/          # Custom exceptions
+│       │   ├── filter/             # Security & RBAC Servlet Filter
+│       │   │   └── AuthenticationFilter.java
+│       │   ├── model/              # Domain POJOs (OOP & Inheritance)
+│       │   │   ├── User.java
+│       │   │   ├── Doctor.java
+│       │   │   ├── Patient.java
+│       │   │   ├── Appointment.java
+│       │   │   └── ...
+│       │   ├── server/             # Embedded Tomcat 10 launcher
+│       │   │   └── MainServer.java
+│       │   └── util/               # Singleton DB connection & BCrypt utility
+│       ├── resources/
+│       │   └── db.properties       # Database credentials & pooling config
+│       └── webapp/
+│           ├── css/style.css       # Complete application styling
+│           ├── js/main.js          # Client-side AJAX & interactions
+│           └── WEB-INF/
+│               ├── web.xml         # Deployment descriptor
+│               └── views/          # JSP view templates (Admin, Doctor, Patient)
+└── supabase/
+    └── migrations/                 # PostgreSQL database migrations
+```
 
 ---
 
-## 🗄️ Database Setup
+## 🗄️ Database Schema & Migrations
 
-Database schema migrations are located in `supabase/migrations/`:
-- `001_initial_schema.sql` - Core database configuration & UUID extensions
-- `002_profiles.sql` - Profiles schema & auth triggers
-- `003_doctors.sql` - Doctor profiles, credentials & licensing
-- `004_patients.sql` - Patient medical metadata & emergency contacts
-- `005_doctor_availability.sql` - Weekly slot definitions
-- `006_appointments.sql` - Appointment records & conflict constraints
-- `007_medical_records.sql` - EMR diagnoses & consultation notes
-- `008_medical_record_files.sql` - Uploaded diagnostic documents
-- `009_feedback.sql` - Patient ratings and review systems
-- `010_notifications.sql` - System alerts & notifications
-- `011_system_settings.sql` - Configurable clinic settings
-- `012_audit_logs.sql` - Immutable audit trail
-- `013_indexes.sql` - High-performance query indexes
-- `014_rls_policies.sql` - Row-level security governance
+Database migrations are located in `supabase/migrations/`:
+- `001_initial_schema.sql` - Core extensions & database settings
+- `002_profiles.sql` - User identities & profile triggers
+- `003_doctors.sql` - Doctor credentials, specializations, licenses
+- `004_patients.sql` - Patient medical records & emergency contacts
+- `005_doctor_availability.sql` - Weekly recurring consultation slots
+- `006_appointments.sql` - Appointment scheduling & status constraints
+- `007_medical_records.sql` - Consultation notes & diagnostic logs
+- `008_medical_record_files.sql` - Attached medical files & reports
+- `009_feedback.sql` - Patient ratings and reviews
+- `010_notifications.sql` - System alerts & notification queue
+- `011_system_settings.sql` - Global administrative parameters
+- `012_audit_logs.sql` - System audit trail
+- `013_indexes.sql` - Performance query indexes
+- `014_rls_policies.sql` - Row-level security definitions
 
 ---
 
 ## 🔒 Security Best Practices
-- **Password Security**: Cryptographic salting and hashing via BCrypt.
-- **SQL Injection Prevention**: Exclusive usage of parameterized queries (`PreparedStatement`).
-- **Session Management**: Secure HTTP-only cookies and invalidation timeouts.
-- **Database Security**: Enforced RLS policies restricting read/write access per authenticated user role.
+- **Password Salting & Hashing**: BCrypt encryption for user credentials.
+- **SQL Injection Prevention**: Parameterized `PreparedStatement` across all queries.
+- **Session Management**: Secure HTTP sessions with strict timeouts and invalidation on logout.
+- **RBAC Enforcement**: Server-level filter authorization preventing privilege escalation.
 
 ---
 
 ## 📄 License
-This project is open-source and licensed under the MIT License.
+This project is open-source and available under the [MIT License](LICENSE).
