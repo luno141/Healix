@@ -45,3 +45,13 @@ node_modules
 .next
 out
 .supabase
+
+# Java & Gradle artifacts
+.gradle/
+**/build/
+!src/**/build/
+**/tomcat.*/
+target/
+*.class
+*.war
+*.jar
